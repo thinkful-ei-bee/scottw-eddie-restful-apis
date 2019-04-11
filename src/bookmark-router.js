@@ -212,11 +212,11 @@ bookmarkRouter
     const { name, url, rating, description } = req.body;
     const bookmarkToUpdate = { name, url, rating, description };
 
-    const numberOfValues = Object.values(bookmarkToUpdate).filter(Boolean).length
+    const numberOfValues = Object.values(bookmarkToUpdate).filter(Boolean).length;
     if (numberOfValues === 0) {
       return res.status(400).json({
         error: {
-          message: `request body must contain either 'name', 'url', 'rating', or 'description'`
+          message: 'request body must contain either \'name\', \'url\', \'rating\', or \'description\''
         }
       });
     }
