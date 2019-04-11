@@ -20,7 +20,7 @@ const serializeBookmark = bookmark => ({
 
 
 bookmarkRouter
-  .route('/bookmarks')
+  .route('/api/bookmarks')
   .get((req,res,next) => {
 
     const knexInstance = req.app.get('db');
@@ -58,7 +58,7 @@ bookmarkRouter
       .then(bookmark => {
         res
           .status(201)
-          .location(`/bookmarks/${bookmark.id}`)
+          .location(req.originalUrl +`/${bookmark.id}`)
           .json(bookmark);
       })
       .catch(next);
@@ -138,7 +138,7 @@ bookmarkRouter
 
 
 bookmarkRouter
-  .route('/bookmarks/:id')
+  .route('/api/bookmarks/:id')
   .all((req, res, next) => {
     bookmarkService.getBookmarkById(
       req.app.get('db'),

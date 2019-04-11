@@ -61,31 +61,27 @@ describe('Bookmarks Endpoints', function() {
     });
 
     
-    it('GET /bookmarks:id responds with 200 and correct bookmark', () => {
+    it('GET /api/bookmarks:id responds with 200 and correct bookmark', () => {
 
       // eslint-disable-next-line no-undef
       return supertest(app)
-        .get('/bookmarks/1')
+        .get('/api/bookmarks/1')
         .expect(200, testBookmarks[0]);
       // TODO: add more assertions about the body
     });
   
     
-    it('GET /bookmarks responds with 200 and all of the articles', () => {
+    it('GET /api/bookmarks responds with 200 and all of the articles', () => {
       // eslint-disable-next-line no-undef
       return supertest(app)
-        .get('/bookmarks')
+        .get('/api/bookmarks')
         .expect(200, testBookmarks);
       // TODO: add more assertions about the body
     });
-
-    
-
-
   });
 
 
-  describe('POST /bookmarks', () => {
+  describe('POST /api/bookmarks', () => {
     it('creates an article, responding with 201 and the new article',  function() {
 
       const newBookmark = {
@@ -98,7 +94,7 @@ describe('Bookmarks Endpoints', function() {
       
       // eslint-disable-next-line no-undef
       return supertest(app)
-        .post('/bookmarks')
+        .post('/api/bookmarks')
         .send(newBookmark)
         .expect(201)
         .expect(res => {
@@ -107,12 +103,12 @@ describe('Bookmarks Endpoints', function() {
           expect(res.body.description).to.eql(newBookmark.description);
           expect(res.body.rating).to.eql(newBookmark.rating);
           expect(res.body).to.have.property('id');
-          expect(res.headers.location).to.eql(`/bookmarks/${res.body.id}`);
+          expect(res.headers.location).to.eql(`/api/bookmarks/${res.body.id}`);
         })
         .then(postRes =>
           // eslint-disable-next-line no-undef
           supertest(app)
-            .get('/bookmarks/' + postRes.body.id )
+            .get('/api/bookmarks/' + postRes.body.id )
             .expect(postRes.body) 
         );
     });
@@ -120,7 +116,7 @@ describe('Bookmarks Endpoints', function() {
     it('responds with 400 and an error message when the \'name\' is missing', () => {
       // eslint-disable-next-line no-undef
       return supertest(app)
-        .post('/bookmarks')
+        .post('/api/bookmarks')
         .send({
           url: 'blank',
           id: 15,
@@ -135,7 +131,7 @@ describe('Bookmarks Endpoints', function() {
     it('responds with 400 and an error message when the \'url\' is missing', () => {
       // eslint-disable-next-line no-undef
       return supertest(app)
-        .post('/bookmarks')
+        .post('/api/bookmarks')
         .send({
           name: 'testme',
           id: 15,
@@ -150,7 +146,7 @@ describe('Bookmarks Endpoints', function() {
     it('responds with 400 and an error message when the \'rating\' is missing', () => {
       // eslint-disable-next-line no-undef
       return supertest(app)
-        .post('/bookmarks')
+        .post('/api/bookmarks')
         .send({
           url: 'blank',
           id: 15,
@@ -165,7 +161,7 @@ describe('Bookmarks Endpoints', function() {
     it('responds with 400 and an error message when the \'rating\' is not a number', () => {
       // eslint-disable-next-line no-undef
       return supertest(app)
-        .post('/bookmarks')
+        .post('/api/bookmarks')
         .send({
           url: 'blank',
           id: 15,
@@ -181,7 +177,7 @@ describe('Bookmarks Endpoints', function() {
     it('responds with 400 and an error message when the \'rating\' is outside range', () => {
       // eslint-disable-next-line no-undef
       return supertest(app)
-        .post('/bookmarks')
+        .post('/api/bookmarks')
         .send({
           url: 'blank',
           id: 15,
@@ -197,7 +193,7 @@ describe('Bookmarks Endpoints', function() {
     it('responds with 400 and an error message when the \'name\' is missing', () => {
       // eslint-disable-next-line no-undef
       return supertest(app)
-        .post('/bookmarks')
+        .post('/api/bookmarks')
         .send({
           url: 'blank',
           id: 15,
@@ -212,7 +208,7 @@ describe('Bookmarks Endpoints', function() {
 
   });
 
-  describe('DELETE /articles/:article_id', () => {
+  describe('DELETE /api/articles/:article_id', () => {
     context('Given there are articles in the database', () => {
       
       const testBookmarks = [
@@ -257,12 +253,12 @@ describe('Bookmarks Endpoints', function() {
         const expectedBookmarks = testBookmarks.filter(bookmark => bookmark.id !== idToRemove);
         // eslint-disable-next-line no-undef
         return supertest(app)
-          .delete(`/bookmarks/${idToRemove}`)
+          .delete(`/api/bookmarks/${idToRemove}`)
           .expect(204)
           .then(res =>
             // eslint-disable-next-line no-undef
             supertest(app)
-              .get('/bookmarks')
+              .get('/api/bookmarks')
               .expect(expectedBookmarks)
           );
       });
@@ -272,7 +268,7 @@ describe('Bookmarks Endpoints', function() {
           const bookmarkId = 123456;
           // eslint-disable-next-line no-undef
           return supertest(app)
-            .delete(`/bookmarks/${bookmarkId}`)
+            .delete(`/api/bookmarks/${bookmarkId}`)
             .expect(404, { error: { message: 'Bookmark doesn\'t exist' } });
         });
       });
