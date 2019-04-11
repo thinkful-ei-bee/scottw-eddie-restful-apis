@@ -6,6 +6,37 @@ const app = require('../src/app');
 
 describe('Bookmarks Endpoints', function() {
 
+  const testBookmarksArray = [
+    {
+      id: 1,
+      name: 'test1',
+      url: 'test1_url',
+      description: 'test1_descr',
+      rating: 5
+    },
+    {
+      id: 2,
+      name: 'test2',
+      url: 'test2_url',
+      description: 'test2_descr',
+      rating: 2
+    },
+    {
+      id: 3,
+      name: 'test3',
+      url: 'test3_url',
+      description: 'test3_descr',
+      rating: 3
+    },
+    {
+      id: 4,
+      name: 'test4',
+      url: 'test4_url',
+      description: 'test4_descr',
+      rating: 4
+    }
+  ];
+
   let db;
 
   before('make knex instance', () => {
@@ -23,36 +54,37 @@ describe('Bookmarks Endpoints', function() {
   afterEach('cleanup', () => db('bookmarks').truncate());
 
   context('Given there are articles in the database', () => {
-    const testBookmarks = [
-      {
-        id: 1,
-        name: 'test1',
-        url: 'test1_url',
-        description: 'test1_descr',
-        rating: 5
-      },
-      {
-        id: 2,
-        name: 'test2',
-        url: 'test2_url',
-        description: 'test2_descr',
-        rating: 2
-      },
-      {
-        id: 3,
-        name: 'test3',
-        url: 'test3_url',
-        description: 'test3_descr',
-        rating: 3
-      },
-      {
-        id: 4,
-        name: 'test4',
-        url: 'test4_url',
-        description: 'test4_descr',
-        rating: 4
-      }
-    ];
+    const testBookmarks = testBookmarksArray;
+    // const testBookmarks = [
+    //   {
+    //     id: 1,
+    //     name: 'test1',
+    //     url: 'test1_url',
+    //     description: 'test1_descr',
+    //     rating: 5
+    //   },
+    //   {
+    //     id: 2,
+    //     name: 'test2',
+    //     url: 'test2_url',
+    //     description: 'test2_descr',
+    //     rating: 2
+    //   },
+    //   {
+    //     id: 3,
+    //     name: 'test3',
+    //     url: 'test3_url',
+    //     description: 'test3_descr',
+    //     rating: 3
+    //   },
+    //   {
+    //     id: 4,
+    //     name: 'test4',
+    //     url: 'test4_url',
+    //     description: 'test4_descr',
+    //     rating: 4
+    //   }
+    // ];
     
     beforeEach('insert articles', () => {
       return db
@@ -71,7 +103,7 @@ describe('Bookmarks Endpoints', function() {
     });
   
     
-    it('GET /api/bookmarks responds with 200 and all of the articles', () => {
+    it('GET /api/bookmarks responds with 200 and all of the bookmarks', () => {
       // eslint-disable-next-line no-undef
       return supertest(app)
         .get('/api/bookmarks')
@@ -82,7 +114,7 @@ describe('Bookmarks Endpoints', function() {
 
 
   describe('POST /api/bookmarks', () => {
-    it('creates an article, responding with 201 and the new article',  function() {
+    it('creates a bookmark, responding with 201 and the new bookmark',  function() {
 
       const newBookmark = {
         id : 13,
@@ -208,8 +240,8 @@ describe('Bookmarks Endpoints', function() {
 
   });
 
-  describe('DELETE /api/articles/:article_id', () => {
-    context('Given there are articles in the database', () => {
+  describe('DELETE /api/bookmarks/:id', () => {
+    context('Given there are bookmarks in the database', () => {
       
       const testBookmarks = [
         {
@@ -272,6 +304,86 @@ describe('Bookmarks Endpoints', function() {
             .expect(404, { error: { message: 'Bookmark doesn\'t exist' } });
         });
       });
+    });
+  });
+
+  describe(`PATCH /api/bookmarks/:id`, () => {
+    context(`Given no bookmarks`, () => {
+      it(`responds with 404`, () => {
+        const id = 123456;
+        return supertest(app)
+          .patch(`/api/bookmarks/${id}`)
+          .expect(404, { error: { message: `Bookmark doesn't exist` }  });
+      });
+    });
+    context('Given there are bookmarks in the database', () => {
+      const testBookmarks = testBookmarksArray;
+
+      beforeEach('insert bookmarks', () => {
+        return db
+          .into('bookmarks')
+          .insert(testBookmarks)
+      });
+
+      it('responds with 204 and updates the bookmark', () => {
+        const idToUpdate = 2
+        const updateBookmark = {
+          url: 'testurl.com',
+          description: 'test description',
+          rating: 4,
+        };
+        const expectedBookmark = {
+          ...testBookmarks[idToUpdate - 1],
+          ...updateBookmark
+        };
+        return supertest(app)
+          .patch(`/api/bookmarks/${idToUpdate}`)
+          .send(updateBookmark)
+          .expect(204)
+          .then(res => 
+            supertest(app)
+              .get(`/api/bookmarks/${idToUpdate}`)
+              .expect(expectedBookmark)
+          );
+      });
+
+      it(`responds with 400 when no required fields supplied`, () => {
+        const idToUpdate = 2;
+        return supertest(app)
+          .patch(`/api/bookmarks/${idToUpdate}`)
+          .send({ irrelevantField: 'foo' })
+          .expect(400, {
+            error: {
+              message: `request body must contain either 'name', 'url', 'rating', or 'description'`
+            }
+          });
+      });
+
+      it(`responds with 204 when updating only a subset of fields`, () => {
+        const idToUpdate = 2
+        const updateBookmark = {
+          name: 'updated bookmark name',
+        }
+        const expectedBookmark = {
+          ...testBookmarks[idToUpdate - 1],
+          ...updateBookmark
+        }
+
+        return supertest(app)
+          .patch(`/api/bookmarks/${idToUpdate}`)
+          .send({
+            ...updateBookmark,
+            fieldToIgnore: 'should not be in GET response'
+          })
+          .expect(204)
+          .then(res =>
+            supertest(app)
+              .get(`/api/bookmarks/${idToUpdate}`)
+              .expect(expectedBookmark)
+          );
+      });
+
+
     });
   });
 
